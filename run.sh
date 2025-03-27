@@ -107,12 +107,12 @@ if [[ "$DO_CROP" == "false" ]]; then
 else
   INPUT_DIR=${CROPED_DIR}
 fi
-PROCESSED_DIR=${PROJECT_PATH}/processed
+PROCESSED_DIR=${PROJECT_PATH}/tiled
 if [ -d "${PROCESSED_DIR}" ]; then
     log "${PROCESSED_DIR} exists, skip crop!" "$SKIP"
 else
     mkdir -p ${PROCESSED_DIR}
-    CMD="/data/scripts/tile_lidar_files.sh --input_dir=${INPUT_DIR} --output_dir=${PROCESSED_DIR} --min_x=${MIN_X}  --min_y=${MIN_Y} --pow=${POW}"
+    CMD="/data/scripts/tile_lidar_files_v3.sh --input_dir=${INPUT_DIR} --output_dir=${PROCESSED_DIR} --min_x=${MIN_X}  --min_y=${MIN_Y} --pow=${POW}"
     log "Start ${CMD}  ..."	       
     docker run --rm -v ${PROJECT_PATH}:${PROJECT_PATH} \
            -v ${PWD}/scripts:/data/scripts \

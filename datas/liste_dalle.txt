@@ -1,9 +1,1 @@
 https://storage.sbg.cloud.ovh.net/v1/AUTH_63234f509d6048bca3c9fd7928720ca1/ppk-lidar/KE/LHD_FXX_0656_6862_PTS_O_LAMB93_IGN69.copc.laz
-https://storage.sbg.cloud.ovh.net/v1/AUTH_63234f509d6048bca3c9fd7928720ca1/ppk-lidar/KE/LHD_FXX_0657_6862_PTS_O_LAMB93_IGN69.copc.laz
-https://storage.sbg.cloud.ovh.net/v1/AUTH_63234f509d6048bca3c9fd7928720ca1/ppk-lidar/KE/LHD_FXX_0658_6862_PTS_O_LAMB93_IGN69.copc.laz
-https://storage.sbg.cloud.ovh.net/v1/AUTH_63234f509d6048bca3c9fd7928720ca1/ppk-lidar/KE/LHD_FXX_0658_6861_PTS_O_LAMB93_IGN69.copc.laz
-https://storage.sbg.cloud.ovh.net/v1/AUTH_63234f509d6048bca3c9fd7928720ca1/ppk-lidar/KE/LHD_FXX_0657_6861_PTS_O_LAMB93_IGN69.copc.laz
-https://storage.sbg.cloud.ovh.net/v1/AUTH_63234f509d6048bca3c9fd7928720ca1/ppk-lidar/KE/LHD_FXX_0656_6861_PTS_O_LAMB93_IGN69.copc.laz
-https://storage.sbg.cloud.ovh.net/v1/AUTH_63234f509d6048bca3c9fd7928720ca1/ppk-lidar/KE/LHD_FXX_0656_6860_PTS_O_LAMB93_IGN69.copc.laz
-https://storage.sbg.cloud.ovh.net/v1/AUTH_63234f509d6048bca3c9fd7928720ca1/ppk-lidar/KE/LHD_FXX_0657_6860_PTS_O_LAMB93_IGN69.copc.laz
-https://storage.sbg.cloud.ovh.net/v1/AUTH_63234f509d6048bca3c9fd7928720ca1/ppk-lidar/KE/LHD_FXX_0658_6860_PTS_O_LAMB93_IGN69.copc.laz

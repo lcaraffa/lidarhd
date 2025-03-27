@@ -51,43 +51,37 @@ for file in "$input_dir"/*.laz; do
   temp_pipeline=$(mktemp)
 
   # Get the bounds of the current file using pdal info and awk
-  echo "file: $file"
+
   x_min=$(pdal info --metadata $file | grep minx  | grep -oP '"minx":\s*\K\d+')
   x_max=$(pdal info --metadata $file | grep maxx  | grep -oP '"maxx":\s*\K\d+')
   y_min=$(pdal info --metadata $file | grep miny  | grep -oP '"miny":\s*\K\d+')
   y_max=$(pdal info --metadata $file | grep maxy  | grep -oP '"maxy":\s*\K\d+')
 
-  # Print the values of the variables
-  echo "x_min: $x_min"
-  echo "x_max: $x_max"
-  echo "y_min: $y_min"
-  echo "y_max: $y_max"
+  # # Print the values of the variables
+  # echo "x_min: $x_min"
+  # echo "x_max: $x_max"
+  # echo "y_min: $y_min"
+  # echo "y_max: $y_max"
 
   # Calculate the tile size
   tile_size_x=$(python3 -c "print(($x_max - $x_min) / $num_tiles)")
   tile_size_y=$(python3 -c "print(($y_max - $y_min) / $num_tiles)")
-  echo "${tile_size_x}"
-  echo "${tile_size_y}"
 
   temp_info=$(mktemp)
   pdal info --all --input $file > ${temp_info}
   nn=$(cat ${temp_info} | grep -n "PointSourceId" | awk -F: 'NR==3 {print $1}')
-  cat ${temp_info} | grep -n "PointSourceId"
-  echo "nn =>  $nn"
+
+
 
   # Calculer les numéros de ligne pour -1 et -2
   line_minus_1=$(($nn - 1))
   line_minus_2=$(($nn - 2))
 
   # Print line numbers
-  echo "line_minus_1: $line_minus_1"
-  echo "line_minus_2: $line_minus_2"
   max_id=$(sed -n "${line_minus_2}p" "$temp_info" | sed -n 's/.*"maximum": \([0-9]\+\).*/\1/p')
   min_id=$(sed -n "${line_minus_1}p" "$temp_info" | sed -n 's/.*"minimum": \([0-9]\+\).*/\1/p')
 
-  # Print min_id and max_id
-  echo "min_id: $min_id"
-  echo "max_id: $max_id"
+
 
   # Check if min_id and max_id are defined
   if [[ -z "$min_id" || -z "$max_id" ]]; then
@@ -98,7 +92,7 @@ for file in "$input_dir"/*.laz; do
   # Loop over each tile and create a separate pipeline for each
   for ((i=0; i<num_tiles; i++)); do
     for ((j=0; j<num_tiles; j++)); do
-      echo "$i $j"
+
       tile_x_min=$(python3 -c "print($x_min + $i * $tile_size_x)")
       tile_x_max=$(python3 -c "print($x_min + ($i + 1) * $tile_size_x)")
       tile_y_min=$(python3 -c "print($y_min + $j * $tile_size_y)")
@@ -107,8 +101,8 @@ for file in "$input_dir"/*.laz; do
       # Loop over each PointSourceId
 
       for ((id=$min_id; id<=$max_id; id++)); do
-	echo $id
-        output_file="${output_dir}/$(basename "$file" .laz)_tile_${i}_${j}_id_${id}.ply"
+
+        output_file="${output_dir}/$(basename "$file" .laz)_tile_${i}_${j}_id_${id}.laz"
 
         # Start creating the PDAL pipeline for the current file
         temp_pipeline=$(mktemp)
@@ -120,7 +114,6 @@ for file in "$input_dir"/*.laz; do
             "type": "readers.las",
             "filename": "'"$file"'"
           },' >> "$temp_pipeline"
-	echo "1 0 0 -${min_x}  0 1 0 -${min_y}  0 0 1 0  0 0 0 1"
         cat >> "$temp_pipeline" <<EOF
         {
           "type": "filters.crop",
@@ -135,9 +128,9 @@ for file in "$input_dir"/*.laz; do
           "limits": "PointSourceId[$id:$id]"
         },
         {
-          "type": "writers.ply",
-          "storage_mode":"little endian",
-          "filename": "$output_file"
+         "type": "writers.las",
+         "filename": "$output_file",
+         "compression": "laszip"
         }
       ]
     }
@@ -150,5 +143,4 @@ EOF
   done
 done
 
-echo "Tiling completed. Results saved to $output_dir"
 exit 0

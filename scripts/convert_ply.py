@@ -1,59 +1,55 @@
 import os
 import numpy as np
 import argparse
-import open3d as o3d  # Utilisation de open3d
+import open3d as o3d
+import laspy
 
 class PointCloudProcessor:
     def __init__(self):
         pass
 
-    def save_pointcloud_tensor(self, ply_file, tensor):
-        """Sauvegarde un tensor sous forme binaire en remplaçant l'extension .ply par .bin."""
-        # Remplacer l'extension .ply par .bin
-        bin_file = ply_file.replace(".ply", ".bin")
-        
-        # Sauvegarder le tensor sous forme binaire
-        tensor.astype(np.float32).tofile(bin_file)
+    def save_pointcloud_tensor(self, output_dir, index, tensor):
+        """Sauvegarde un tensor sous forme binaire dans le répertoire de sortie avec un nom numéroté."""
+        bin_filename = os.path.join(output_dir, f"{index:06d}.bin")
+        tensor.astype(np.float32).tofile(bin_filename)
 
-    def ply_to_tensor(self, ply_file):
-        """Convertit un fichier .ply en un tensor numpy de type float32."""
-        # Charger le fichier PLY avec open3d
-        pcd = o3d.io.read_point_cloud(ply_file)
-        
-        # Extraire les points (x, y, z)
-        points = np.asarray(pcd.points)
-        
-        # Vérifier si des couleurs sont présentes et les ajouter comme intensité
-        if len(np.asarray(pcd.colors)) > 0:
-            colors = np.asarray(pcd.colors)
-            # Ajouter les couleurs comme la dernière colonne (intensité)
-            return np.hstack((points, colors))
-        else:
-            # Si pas de couleur, ajouter une colonne d'intensité nulle
-            return np.hstack((points, np.zeros((points.shape[0], 3))))  # Intensité 0,0,0 pour chaque point
 
-def process_directory(directory):
-    processor = PointCloudProcessor()
+    def laz_to_tensor(self, laz_file):
+        """Convertit un fichier .laz en un tensor numpy de type float32."""
+        with laspy.open(laz_file) as las:
+            points = las.read()
+            xyz = np.vstack((points.x, points.y, points.z)).T  # Extraire (x, y, z)
+
+            # Vérifier si l'intensité est présente
+            if hasattr(points, 'intensity'):
+                intensity = points.intensity[:, np.newaxis]  # Ajouter une dimension pour l'intensité
+            else:
+                intensity = np.zeros((xyz.shape[0], 1))  # Valeurs nulles si pas d'intensité
+            
+            return np.hstack((xyz, intensity))  # Concaténer en une seule matrice
+
+def process_directory(input_dir, output_dir):
+    """Parcourt le répertoire d'entrée et convertit chaque fichier .laz en .bin."""
+    os.makedirs(output_dir, exist_ok=True)
     
-    for filename in os.listdir(directory):
-        if filename.endswith(".ply"):
-            ply_file = os.path.join(directory, filename)
-            print(f"Processing file: {ply_file}")
-            
-            # Convertir le fichier PLY en tensor
-            tensor = processor.ply_to_tensor(ply_file)
-            
-            # Sauvegarder le tensor converti avec l'extension .bin
-            processor.save_pointcloud_tensor(ply_file, tensor)
+    processor = PointCloudProcessor()
+    laz_files = sorted([f for f in os.listdir(input_dir) if f.endswith(".laz")])  # Trier pour un ordre stable
+    
+    for idx, filename in enumerate(laz_files, start=1):
+        laz_file = os.path.join(input_dir, filename)
 
-def main():
-    # Parser les arguments
-    parser = argparse.ArgumentParser(description="Convert PLY files to Velodyne binary format.")
-    parser.add_argument("directory", type=str, help="Directory containing the PLY files to convert.")
+
+        # Convertir le fichier LAZ en tensor
+        tensor = processor.laz_to_tensor(laz_file)
+
+        # Sauvegarder sous forme binaire avec numérotation
+        processor.save_pointcloud_tensor(output_dir, idx, tensor)
+
+
+if __name__ == "__main__":        
+    parser = argparse.ArgumentParser(description="Convert LAZ files to Velodyne binary format.")
+    parser.add_argument("--input_dir", type=str, help="Directory containing the LAZ files.")
+    parser.add_argument("--output_dir", type=str, help="Directory to save the converted BIN files.")
     args = parser.parse_args()
-
-    # Traitement du répertoire
-    process_directory(args.directory)
-
-if __name__ == "__main__":
-    main()
+    print(args.input_dir)
+    process_directory(args.input_dir, args.output_dir)

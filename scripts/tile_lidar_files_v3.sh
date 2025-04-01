@@ -21,11 +21,11 @@ case $i in
     shift
     ;;
     --min_x=*)
-    min_x="${i#*=}"
+    glob_x_min="${i#*=}"
     shift
     ;;
     --min_y=*)
-    min_y="${i#*=}"
+    glob_y_min="${i#*=}"
     shift
     ;;    
     --subsample_ratio=*)
@@ -94,7 +94,7 @@ for file in "${output_dir}"/*.laz; do
     cat >> "$temp_pipeline" <<EOF
 	{
             "type": "filters.transformation",
-            "matrix": "1 0 0 -${min_x}  0 1 0 -${min_y}  0 0 1 0  0 0 0 1"
+            "matrix": "1 0 0 -${glob_x_min}  0 1 0 -${glob_y_min}  0 0 1 0  0 0 0 1"
         },
         {
           "type": "filters.range",

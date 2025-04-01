@@ -9,6 +9,8 @@ usage() {
 POW=3
 BBOX_SIZE=100
 DO_CROP=false
+DO_USE_DOCKER=true
+
 while [[ "$#" -gt 0 ]]; do
   case $1 in
       --list_files) LIST_FILES="$2"; shift ;;
@@ -31,6 +33,22 @@ echo "  - Fichier center      : ${CENTER_FILE:-Non spécifié}"
 echo "  - Taille BBOX         : $BBOX_SIZE"
 echo "  - Do_CROP         : $BBOX_SIZE"
 echo "  - Chemin projet       : $PROJECT_PATH"
+
+
+execute_command() {
+    if [ "$DO_USE_DOCKER" = true ]; then
+        log "Start ${CMD} with Docker..."
+        docker run --rm -v ${PROJECT_PATH}:${PROJECT_PATH} \
+                   -v ${PWD}/scripts:/data/scripts \
+                   pdal/pdal \
+                   /bin/bash -c "${CMD}"
+    else
+        log "Start ${CMD} locally..."
+        eval "${CMD}"
+    fi
+}
+
+
 
 RAW_LAZ_DIR=${PROJECT_PATH}/raw_inputs
 
@@ -56,11 +74,7 @@ else
     read -r LAT LONG < ${CENTER_FILE}
     log "Stats /data/scripts/tile_lidar_files.sh"
     CMD="/data/scripts/compute_stats.sh --input_dir=${INPUT_DIR} --output_dir=${STATS_DIR}"
-    echo "=> $CMD"
-    docker run --rm -v ${PROJECT_PATH}:${PROJECT_PATH} \
-           -v ${PWD}/scripts:/data/scripts \
-           pdal/pdal \
-           /bin/bash -c "${CMD}"
+    execute_command
 fi
 ## Compute min 
 read MIN_X MIN_Y <<< $(find ${STATS_DIR} -name "*.txt" -exec awk '{print $1, $2}' {} + | \
@@ -91,11 +105,8 @@ if [[ "$DO_CROP" == "true" ]]; then
 
     read -r LAT LONG < ${CENTER_FILE}
     CMD="/data/scripts/crop_lidar_files.sh --input_dir=${RAW_LAZ_DIR} --output_file=${CROPED_DIR}/cropped_merged.laz --LAT=${LAT} --LONG=${LONG} ${BBOX_SIZE_CMD} ${SUBSAMPLE_RATIO_CMD}"
-    log "Start ${CMD}" "$PROCESS"
-    docker run --rm -v ${PROJECT_PATH}:${PROJECT_PATH} \
-           -v ${PWD}/scripts:/data/scripts \
-           pdal/pdal \
-           /bin/bash -c "${CMD}"
+    execute_command
+    
   fi
   log "cropping finished!" "$FINISH"
 fi
@@ -112,12 +123,9 @@ if [ -d "${PROCESSED_DIR}" ]; then
     log "${PROCESSED_DIR} exists, skip crop!" "$SKIP"
 else
     mkdir -p ${PROCESSED_DIR}
-    CMD="/data/scripts/tile_lidar_files_v3.sh --input_dir=${INPUT_DIR} --output_dir=${PROCESSED_DIR} --min_x=${MIN_X}  --min_y=${MIN_Y} --pow=${POW}"
-    log "Start ${CMD}  ..."	       
-    docker run --rm -v ${PROJECT_PATH}:${PROJECT_PATH} \
-           -v ${PWD}/scripts:/data/scripts \
-           pdal/pdal \
-           /bin/bash -c "${CMD}"
+    CMD="/data/scripts/tile_lidar_files_v4.sh --input_dir=${INPUT_DIR} --output_dir=${PROCESSED_DIR} --min_x=${MIN_X}  --min_y=${MIN_Y} --pow=${POW}"
+    execute_command
+
     # docker run -it -v ${PROJECT_PATH}:${PROJECT_PATH} \
     #        -v ${PWD}/scripts:/data/scripts \
     #        pdal/pdal \

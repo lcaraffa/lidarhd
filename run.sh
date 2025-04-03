@@ -123,7 +123,7 @@ if [ -d "${PROCESSED_DIR}" ]; then
     log "${PROCESSED_DIR} exists, skip crop!" "$SKIP"
 else
     mkdir -p ${PROCESSED_DIR}
-    CMD="/data/scripts/tile_lidar_files_v4.sh --input_dir=${INPUT_DIR} --output_dir=${PROCESSED_DIR} --min_x=${MIN_X}  --min_y=${MIN_Y} --pow=${POW}"
+    CMD="/data/scripts/tile_lidar_files_v5.sh --input_dir=${INPUT_DIR} --output_dir=${PROCESSED_DIR} --min_x=${MIN_X}  --min_y=${MIN_Y} --pow=${POW}"
     execute_command
 
     # docker run -it -v ${PROJECT_PATH}:${PROJECT_PATH} \

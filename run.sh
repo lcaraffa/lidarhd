@@ -118,6 +118,7 @@ if [[ "$DO_CROP" == "false" ]]; then
 else
   INPUT_DIR=${CROPED_DIR}
 fi
+
 PROCESSED_DIR=${PROJECT_PATH}/tiled
 if [ -d "${PROCESSED_DIR}" ]; then
     log "${PROCESSED_DIR} exists, skip crop!" "$SKIP"
@@ -125,13 +126,27 @@ else
     mkdir -p ${PROCESSED_DIR}
     CMD="/data/scripts/tile_lidar_files_v5.sh --input_dir=${INPUT_DIR} --output_dir=${PROCESSED_DIR} --min_x=${MIN_X}  --min_y=${MIN_Y} --pow=${POW}"
     execute_command
-
     # docker run -it -v ${PROJECT_PATH}:${PROJECT_PATH} \
     #        -v ${PWD}/scripts:/data/scripts \
     #        pdal/pdal \
     #        /bin/bash 
 fi
 log "tiling finished!" "$FINISH"
+
+MERGED_DIR=${PROJECT_PATH}/merged
+if [ -d "${MERGED_DIR}" ]; then
+    log "${MERGED_DIR} exists, skip crop!" "$SKIP"
+else
+    mkdir -p ${MERGED_DIR}
+    CMD="/data/scripts/merge_lidar_file.sh --input_dir=${PROCESSED_DIR} --output_dir=${MERGED_DIR}"
+    execute_command
+    # docker run -it -v ${PROJECT_PATH}:${PROJECT_PATH} \
+    #        -v ${PWD}/scripts:/data/scripts \
+    #        pdal/pdal \
+    #        /bin/bash 
+fi
+log "tiling finished!" "$FINISH"
+
 
 log "convert to binary ..." "$PROCESS"
 BIN_DIR=${PROJECT_PATH}/bin

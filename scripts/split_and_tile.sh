@@ -39,29 +39,56 @@ case $i in
 esac
 done
 
+total_cores=$(nproc)
+max_jobs=$((total_cores - 1))
+
+count=0
 
 
-# Create the output directory if it doesn't exist
+# Créer le répertoire de sortie s'il n'existe pas
 mkdir -p "$output_dir"
 
-
-# Loop over each .laz file
-for file in "$input_dir"/*.laz; do
-  x_min=$(pdal info --metadata $file | grep minx  | grep -oP '"minx":\s*\K\d+')
-  x_max=$(pdal info --metadata $file | grep maxx  | grep -oP '"maxx":\s*\K\d+')
-  y_min=$(pdal info --metadata $file | grep miny  | grep -oP '"miny":\s*\K\d+')
-  y_max=$(pdal info --metadata $file | grep maxy  | grep -oP '"maxy":\s*\K\d+')
-  # Calculate the number of tiles
+# Fonction pour traiter chaque fichier
+process_file_1() {
+  file=$1
+  echo "Processing1: $file"
+  
+  temp_info=$(mktemp)
+  pdal info --metadata "$file" > "$temp_info"
+  
+  x_min=$(grep -oP '"minx":\s*\K\d+' "$temp_info")
+  x_max=$(grep -oP '"maxx":\s*\K\d+' "$temp_info")
+  y_min=$(grep -oP '"miny":\s*\K\d+' "$temp_info")
+  y_max=$(grep -oP '"maxy":\s*\K\d+' "$temp_info")
+  
+  rm "$temp_info"
+  
   num_tiles=$((2 ** pow))
   tile_size_x=$(python3 -c "print(($x_max - $x_min) / $num_tiles)")
-  
+
   output_file="${output_dir}/$(basename "$file" .laz)_#.laz"
-  pdal tile -i "$file" -o "${output_file}" --length "$tile_size_x"  --origin_x ${x_min} --origin_y ${y_min}
+  pdal tile -i "$file" -o "$output_file" --length "$tile_size_x" --origin_x "$x_min" --origin_y "$y_min"
+}
+
+export -f process_file_1
+export output_dir
+export pow
+
+for file in "$input_dir"/*.laz; do
+  process_file_1 "$file" &
+  count=$((count + 1))
   
+  if [[ $count -ge $max_jobs ]]; then
+    wait -n
+    count=$((count - 1))
+  fi
+
 done
+wait
+
 
 # Fonction pour traiter chaque fichier
-process_file() {
+process_file_2() {
   file=$1
   echo $file
   temp_info=$(mktemp)
@@ -118,20 +145,17 @@ EOF
   rm "$file"
 }
 
-export -f process_file
+export -f process_file_2
 export output_dir
 export glob_x_min
 export glob_y_min
 
 # Limiter le nombre de processus en arrière-plan
 # Get the total number of CPU cores
-total_cores=$(nproc)
-max_jobs=$((total_cores - 1))
 
-count=0
 
 for file in "${output_dir}"/*.laz; do
-  process_file "$file" &
+  process_file_2 "$file" &
   count=$((count + 1))
 
   # Attendre si le nombre maximum de tâches est atteint

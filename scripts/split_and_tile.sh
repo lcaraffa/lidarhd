@@ -45,46 +45,46 @@ max_jobs=$((total_cores - 1))
 count=0
 
 
-# Créer le répertoire de sortie s'il n'existe pas
-mkdir -p "$output_dir"
+# # Créer le répertoire de sortie s'il n'existe pas
+# mkdir -p "$output_dir"
 
-# Fonction pour traiter chaque fichier
-process_file_1() {
-  file=$1
-  echo "Processing1: $file"
+# # Fonction pour traiter chaque fichier
+# process_file_1() {
+#   file=$1
+#   echo "Processing1: $file"
   
-  temp_info=$(mktemp)
-  pdal info --metadata "$file" > "$temp_info"
+#   temp_info=$(mktemp)
+#   pdal info --metadata "$file" > "$temp_info"
   
-  x_min=$(grep -oP '"minx":\s*\K\d+' "$temp_info")
-  x_max=$(grep -oP '"maxx":\s*\K\d+' "$temp_info")
-  y_min=$(grep -oP '"miny":\s*\K\d+' "$temp_info")
-  y_max=$(grep -oP '"maxy":\s*\K\d+' "$temp_info")
+#   x_min=$(grep -oP '"minx":\s*\K\d+' "$temp_info")
+#   x_max=$(grep -oP '"maxx":\s*\K\d+' "$temp_info")
+#   y_min=$(grep -oP '"miny":\s*\K\d+' "$temp_info")
+#   y_max=$(grep -oP '"maxy":\s*\K\d+' "$temp_info")
   
-  rm "$temp_info"
+#   rm "$temp_info"
   
-  num_tiles=$((2 ** pow))
-  tile_size_x=$(python3 -c "print(($x_max - $x_min) / $num_tiles)")
+#   num_tiles=$((2 ** pow))
+#   tile_size_x=$(python3 -c "print(($x_max - $x_min) / $num_tiles)")
 
-  output_file="${output_dir}/$(basename "$file" .laz)_#.laz"
-  pdal tile -i "$file" -o "$output_file" --length "$tile_size_x" --origin_x "$x_min" --origin_y "$y_min"
-}
+#   output_file="${output_dir}/$(basename "$file" .laz)_#.laz"
+#   pdal tile -i "$file" -o "$output_file" --length "$tile_size_x" --origin_x "$x_min" --origin_y "$y_min"
+# }
 
-export -f process_file_1
-export output_dir
-export pow
+# export -f process_file_1
+# export output_dir
+# export pow
 
-for file in "$input_dir"/*.laz; do
-  process_file_1 "$file" &
-  count=$((count + 1))
+# for file in "$input_dir"/*.laz; do
+#   process_file_1 "$file" &
+#   count=$((count + 1))
   
-  if [[ $count -ge $max_jobs ]]; then
-    wait -n
-    count=$((count - 1))
-  fi
+#   if [[ $count -ge $max_jobs ]]; then
+#     wait -n
+#     count=$((count - 1))
+#   fi
 
-done
-wait
+# done
+# wait
 
 
 # Fonction pour traiter chaque fichier
@@ -154,7 +154,7 @@ export glob_y_min
 # Get the total number of CPU cores
 
 
-for file in "${output_dir}"/*.laz; do
+for file in "${input_dir}"/*.laz; do
   process_file_2 "$file" &
   count=$((count + 1))
 

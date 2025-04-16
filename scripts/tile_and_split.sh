@@ -16,8 +16,8 @@ case $i in
     output_dir="${i#*=}"
     shift
     ;;
-    --pow=*)
-    pow="${i#*=}"
+    --chunk_size=*)
+    chunk_size="${i#*=}"
     shift
     ;;
     --min_x=*)
@@ -63,8 +63,8 @@ process_file_1() {
   
   rm "$temp_info"
   
-  num_tiles=$((2 ** pow))
-  tile_size_x=$(python3 -c "print(($x_max - $x_min) / $num_tiles)")
+  #num_tiles=$((2 ** pow))
+  tile_size_x=${chunk_size} # $(python3 -c "print(($x_max - $x_min) / $num_tiles)")
 
   output_file="${output_dir}/$(basename "$file" .laz)_#.laz"
   pdal tile -i "$file" -o "$output_file" --length "$tile_size_x" --origin_x "$x_min" --origin_y "$y_min"

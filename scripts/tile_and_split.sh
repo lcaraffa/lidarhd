@@ -165,6 +165,11 @@ for file in "${output_dir}"/*.laz; do
   fi
 done
 
+
+
+
+
+
 # Attendre la fin de toutes les tâches en arrière-plan
 wait
 

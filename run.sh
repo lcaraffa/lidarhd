@@ -147,7 +147,7 @@ else
     #        pdal/pdal \
     #        /bin/bash 
 fi
-log "tiling finished!" "$FINISH"
+log "merging finished!" "$FINISH"
 
 
 # log "convert to binary ..." "$PROCESS"

@@ -110,7 +110,9 @@ EOF
   # Nettoyer
   rm "$pipeline"
 
-  
+
+  stat_file="${output_file%.laz}.txt"
+  pdal info --metadata $output_file > ${stat_file}
 }
 
 export -f process_file
@@ -136,5 +138,6 @@ done
 
 # Attendre la fin de toutes les tâches en arrière-plan
 wait
+
 
 exit 0

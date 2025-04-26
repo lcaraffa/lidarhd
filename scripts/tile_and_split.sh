@@ -7,36 +7,36 @@ subsample_ratio=0.2
 # Parse command-line arguments
 for i in "$@"
 do
-case $i in
+  case $i in
     --input_dir=*)
-    input_dir="${i#*=}"
-    shift
-    ;;
+      input_dir="${i#*=}"
+      shift
+      ;;
     --output_dir=*)
-    output_dir="${i#*=}"
-    shift
-    ;;
+      output_dir="${i#*=}"
+      shift
+      ;;
     --chunk_size=*)
-    chunk_size="${i#*=}"
-    shift
-    ;;
+      chunk_size="${i#*=}"
+      shift
+      ;;
     --min_x=*)
-    glob_x_min="${i#*=}"
-    shift
-    ;;
+      glob_x_min="${i#*=}"
+      shift
+      ;;
     --min_y=*)
-    glob_y_min="${i#*=}"
-    shift
-    ;;    
+      glob_y_min="${i#*=}"
+      shift
+      ;;    
     --subsample_ratio=*)
-    subsample_ratio="${i#*=}"
-    shift
-    ;;
+      subsample_ratio="${i#*=}"
+      shift
+      ;;
     *)
-    echo "Unknown option: $i"
-    exit 1
-    ;;
-esac
+      echo "Unknown option: $i"
+      exit 1
+      ;;
+  esac
 done
 
 total_cores=$(nproc)
@@ -90,7 +90,7 @@ wait
 # Fonction pour traiter chaque fichier
 process_file_2() {
   file=$1
-  echo $file
+  #echo $file
   temp_info=$(mktemp)
   pdal info --all --input "$file" > "${temp_info}"
   nn=$(grep -n "PointSourceId" "${temp_info}" | awk -F: 'NR==3 {print $1}')
@@ -172,5 +172,6 @@ done
 
 # Attendre la fin de toutes les tâches en arrière-plan
 wait
+rm -rf output_dir/*_50_*.laz
 
 exit 0

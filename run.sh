@@ -38,7 +38,7 @@ echo "  - Chemin projet       : $PROJECT_PATH"
 
 execute_command() {
   if [ "$DO_USE_DOCKER" = true ]; then
-    log "Start ${CMD} with Docker..."
+    log "Start ${CMD} ..."
     docker run --rm -v ${PROJECT_PATH}:${PROJECT_PATH} \
            -v ${PWD}/scripts:/data/scripts \
            pdal/pdal \
@@ -128,10 +128,6 @@ else
   CMD="/data/scripts/tile_and_split.sh --input_dir=${INPUT_DIR} --output_dir=${PROCESSED_DIR} --min_x=${MIN_X}  --min_y=${MIN_Y} --chunk_size=${CHUNK_SIZE}"
 
   execute_command
-  # docker run -it -v ${PROJECT_PATH}:${PROJECT_PATH} \
-    #        -v ${PWD}/scripts:/data/scripts \
-    #        pdal/pdal \
-    #        /bin/bash 
 fi
 log "tiling finished!" "$FINISH"
 
@@ -142,21 +138,50 @@ else
   mkdir -p ${MERGED_DIR}
   CMD="/data/scripts/merge_lidar_file.sh --input_dir=${PROCESSED_DIR} --output_dir=${MERGED_DIR}"
   execute_command
-  # docker run -it -v ${PROJECT_PATH}:${PROJECT_PATH} \
-    #        -v ${PWD}/scripts:/data/scripts \
-    #        pdal/pdal \
-    #        /bin/bash 
 fi
 log "merging finished!" "$FINISH"
 
 
-# log "convert to binary ..." "$PROCESS"
-# BIN_DIR=${PROJECT_PATH}/bin
-# if [ -d "${BIN_DIR}" ]; then
-#   log "${BIN_DIR} exists, skip crop!" "$SKIP"
+
+log "convert to binary ..." "$PROCESS"
+NORMAL_DIR=${PROJECT_PATH}/merged_processed
+rm -rf ${NORMAL_DIR}
+if [ -d "${NORMAL_DIR}" ]; then
+  log "${NORMAL_DIR} exists, skip crop!" "$SKIP"
+else
+  mkdir -p ${NORMAL_DIR}
+  echo "$NORMAL_DIR"
+  ./scripts/compute_normals.sh --project_path=${PROJECT_PATH} --cgal_dir=${PWD}/cgal/ --output_dir=${NORMAL_DIR}
+fi
+log "convert done!" "$FINISH"
+
+log "convert to bin  ..." "$PROCESS"
+BIN_DIR=${PROJECT_PATH}/bin
+if [ -d "${BIN_DIR}" ]; then
+  log "${BIN_DIR} exists, skip crop!" "$SKIP"
+else
+  mkdir -p ${BIN_DIR}
+  echo "$BIN_DIR"
+  ./build/lidarhd_env/bin/python3 scripts/convert_bin.py --input_dir ${MERGED_DIR} --output_dir ${BIN_DIR}
+fi
+log "convert done!" "$FINISH"
+
+
+
+
+
+
+
+# log "convert to ply ..." "$PROCESS"
+# PLY_DIR=${PROJECT_PATH}/ply
+# if [ -d "${PLY_DIR}" ]; then
+#   log "${PLY_DIR} exists, skip crop!" "$SKIP"
 # else
-#   mkdir -p ${BIN_DIR}
-#   echo "$BIN_DIR"
-#   ./build/lidarhd_env/bin/python3 scripts/convert_ply.py --input_dir ${PROCESSED_DIR} --output_dir ${BIN_DIR}
+#   mkdir -p ${PLY_DIR}
+#   echo "$PLY_DIR"
+#   ./build/lidarhd_env/bin/python3 scripts/convert_ply.py --input_dir ${MERGED_DIR} --output_dir ${PLY_DIR}
 # fi
 # log "convert done!" "$FINISH"
+
+
+
